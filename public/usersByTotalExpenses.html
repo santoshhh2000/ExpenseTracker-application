@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Users by Total Expenses</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+  }
+  h1 {
+    text-align: center;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  th {
+    background-color: #f2f2f2;
+  }
+</style>
+</head>
+<body>
+  <a class="nav-link active" aria-current="page" href="/expenses">Back</a>  
+<h1>Users by Total Expenses</h1>
+<table>
+  <thead>
+    <tr>
+      <th>Serial Number</th>
+      <th>Name</th>
+      <th>Total Expenses</th>
+    </tr>
+  </thead>
+  <tbody id="usersTableBody">
+    <!-- User rows will be dynamically added here -->
+  </tbody>
+</table>
+
+<script>
+  // Function to fetch users data and populate the table
+  async function fetchUsers() {
+    try {
+      const response = await fetch('/usersByTotalExpenses');
+      const users = await response.json();
+      const usersTableBody = document.getElementById('usersTableBody');
+      usersTableBody.innerHTML = ''; // Clear existing rows
+      
+      users.forEach((user, index) => {
+        const row = `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${user.name}</td>
+            <td>${user.total_expenses}</td>
+          </tr>
+        `;
+        usersTableBody.innerHTML += row;
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to fetch users data.');
+    }
+  }
+
+  // Call fetchUsers when the page loads
+  window.onload = fetchUsers;
+</script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Report</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body><button type="button" class="btn btn-link"> <a  href="/expenses">Back</a> </button> 
+    <div class="container mt-5">
+        <h1>Monthly Report</h1>
+        <form id="monthlyReportForm">
+            <div class="form-group">
+                <label for="reportMonth">Select Month:</label>
+                <input type="month" class="form-control" id="reportMonth" name="reportMonth" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Generate Report</button>
+        </form>
+
+        <div id="reportResults" class="mt-4"></div>
+    </div>
+
+    <!-- Bootstrap JS (optional) -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        document.getElementById('monthlyReportForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const reportMonth = document.getElementById('reportMonth').value;
+            const [year, month] = reportMonth.split('-');
+            
+            try {
+                const response = await fetch('/monthly-report', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ year, month })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch report');
+                }
+                
+                const data = await response.json();
+                displayReport(data);
+            } catch (error) {
+                console.error('Error:', error.message);
+            }
+        });
+
+        function displayReport(data) {
+            const reportResults = document.getElementById('reportResults');
+            reportResults.innerHTML = ''; // Clear previous results
+            
+            if (data.length === 0) {
+                reportResults.innerHTML = '<div class="alert alert-info">No expenses found for the selected month</div>';
+                return;
+            }
+            
+            const table = document.createElement('table');
+            table.classList.add('table', 'table-striped');
+            table.innerHTML = `
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Created At DATE</th>
+                        <th>Expense Type</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            `;
+
+            let totalAmount = 0; // Initialize total amount
+            
+            data.forEach(expense => {
+                const row = document.createElement('tr');
+                const createdDate = new Date(expense.created_at);
+                const formattedDate = createdDate.toISOString().split('T')[0]; // Extract date part only
+                row.innerHTML = `
+                    <td>${formattedDate}</td>
+                    <td>${expense.expense_type}</td>
+                    <td>${expense.description}</td>
+                    <td>${expense.amount}</td>
+                `;
+                table.querySelector('tbody').appendChild(row);
+                
+                // Add the amount to the total
+                totalAmount += parseFloat(expense.amount);
+            });
+
+            reportResults.appendChild(table);
+            
+            // Display total amount
+            const totalRow = document.createElement('tr');
+            totalRow.innerHTML = `
+                <td colspan="3">Total:</td>
+                <td>${totalAmount.toFixed(2)}</td>
+            `;
+            table.querySelector('tbody').appendChild(totalRow);
+        }
+    </script>
+</body>
+</html>
